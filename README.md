@@ -79,6 +79,7 @@ def generator(data_path,label_path,batch_size=64):
                 yield (X,Y)
 ```
 ![生成器的图例](./images/someexample.png)
+
 使用keras迁移学习，利用imagenet数据集训练好的Top前5的模型，提取图片的特征，再开放一定的层数可用作训练，加强本项目应用场景的适用度。
 
 ## 基准模型
@@ -88,6 +89,7 @@ def generator(data_path,label_path,batch_size=64):
 ![nvidia模型](./images/nvidiamodel.png)
 
 很不幸这个模型的表现并不好，本来使用没有数据增强的数据集 Loss还能在第一个Epoch降到20以下。但只能拟合这小部分的数据泛化能力必然不够，随后使用编好的生成器训练Loss就一直没有得到优化。
+
 ![基础模型loss](./images/basemode_loss.png)
 
 # III. 方法
@@ -114,7 +116,10 @@ generator从单纯的取固定数量的图片改为有条件的输出。加深�
 在要求loss在1以下的标准下，收敛速度，训练时间基本与预期相符，训练途中大约在epoch7次的时候，改过数据增强部分的参数，比如由降低色彩时乘的系数，阴影的深度，只有不到0.2loss的浮动。
 ![优化模型loss](./images/modelloss.png)
 
-Inception-ResNet-v2是早期Inception V3模型变化而来，从微软的残差网络（ResNet）论文中得到了一些灵感。残差连接（Residual connections ）允许模型中存在shortcuts，可以让研究学者成功地训练更深的神经网络（能够获得更好的表现），这样也能明显地简化Inception块。下方图表所示，Inception-ResNet-v2架构的精确度比之前的最优模型更高，图表中所示为基于单个图像的ILSVRC 2012图像分类标准得出的排行第一与排行第五的有效精确度。此外，该新模型仅仅要求两倍于Inception v3的容量与计算能力。![image](./images/Inception-ResNet-v2.png)
+Inception-ResNet-v2是早期Inception V3模型变化而来，从微软的残差网络（ResNet）论文中得到了一些灵感。残差连接（Residual connections ）允许模型中存在shortcuts，可以让研究学者成功地训练更深的神经网络（能够获得更好的表现），这样也能明显地简化Inception块。下方图表所示，Inception-ResNet-v2架构的精确度比之前的最优模型更高，图表中所示为基于单个图像的ILSVRC 2012图像分类标准得出的排行第一与排行第五的有效精确度。此外，该新模型仅仅要求两倍于Inception v3的容量与计算能力。
+
+![image](./images/Inception-ResNet-v2.png)
+
 此次Inception-ResNet-v2的表现不负所望，loss非常有效的在递减。
 
 ## 合理性分析
