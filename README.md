@@ -35,6 +35,7 @@ ts_micro | frame | wheel
 除去用作验证集的第10段视频，可用作训练集约24300帧图片，label分布的直方图如下：
 
 ![直方图](./images/distribution.png)
+
 可以看到大部分数据集中在-3到3这一个区间，大角度的数据占比就很少了。
 
 24300帧数据。数据显然是不够的。需要采取变更色彩，亮度，随机阴影等方法增加训练数据。为了模型具有更好的预测转弯角度，可以适当增加转向角度绝对值大于1的图片，提高转弯数据的比重。
@@ -87,7 +88,7 @@ def generator(data_path,label_path,batch_size=64):
 ![nvidia模型](./images/nvidiamodel.png)
 
 很不幸这个模型的表现并不好，本来使用没有数据增强的数据集 Loss还能在第一个Epoch降到20以下。但只能拟合这小部分的数据泛化能力必然不够，随后使用编好的生成器训练Loss就一直没有得到优化。
-![基础模型loss](./images/basemodel_loss.png)
+![基础模型loss](./images/basemode_loss.png)
 
 # III. 方法
 ## 数据预处理
@@ -113,7 +114,7 @@ generator从单纯的取固定数量的图片改为有条件的输出。加深�
 在要求loss在1以下的标准下，收敛速度，训练时间基本与预期相符，训练途中大约在epoch7次的时候，改过数据增强部分的参数，比如由降低色彩时乘的系数，阴影的深度，只有不到0.2loss的浮动。
 ![优化模型loss](./images/modelloss.png)
 
-Inception-ResNet-v2是早期Inception V3模型变化而来，从微软的残差网络（ResNet）论文中得到了一些灵感。残差连接（Residual connections ）允许模型中存在shortcuts，可以让研究学者成功地训练更深的神经网络（能够获得更好的表现），这样也能明显地简化Inception块。下方图表所示，Inception-ResNet-v2架构的精确度比之前的最优模型更高，图表中所示为基于单个图像的ILSVRC 2012图像分类标准得出的排行第一与排行第五的有效精确度。此外，该新模型仅仅要求两倍于Inception v3的容量与计算能力。![image](https://note.youdao.com/favicon.ico)
+Inception-ResNet-v2是早期Inception V3模型变化而来，从微软的残差网络（ResNet）论文中得到了一些灵感。残差连接（Residual connections ）允许模型中存在shortcuts，可以让研究学者成功地训练更深的神经网络（能够获得更好的表现），这样也能明显地简化Inception块。下方图表所示，Inception-ResNet-v2架构的精确度比之前的最优模型更高，图表中所示为基于单个图像的ILSVRC 2012图像分类标准得出的排行第一与排行第五的有效精确度。此外，该新模型仅仅要求两倍于Inception v3的容量与计算能力。![image](./images/Inception-ResNet-v2.png)
 此次Inception-ResNet-v2的表现不负所望，loss非常有效的在递减。
 
 ## 合理性分析
@@ -126,6 +127,7 @@ Inception-ResNet-v2是早期Inception V3模型变化而来，从微软的残差�
 # V. 项目结论
 ## 结果可视化
 使用前辈编好的run.py生成验证集角度是否匹配的视频。右下角的框体中，蓝色为标准线，黄色为模型根据图像预测的转向角度。右边的方向盘呈绿色即模型预测的在允许的误差范围内，若偏差太多则呈红色。可能由于增加了反转图片，补充了转向角度大的图片，模型预测结果波动很大。看来分类模型做回归题还是差了点。。。
+![image](./images/valid.png)
 
 ## 对项目的思考
 迁移学习把已学训练好的模型参数迁移到新的模型来帮助新模型训练。考虑到大部分数据或任务是存在相关性的，所以通过迁移学习我们可以将已经学到的模型参数（也可理解为模型学到的知识）通过某种方式来分享给新模型从而加快并优化模型的学习效率不用像大多数网络那样从零学习。
@@ -148,7 +150,7 @@ Inception-ResNet-v2是早期Inception V3模型变化而来，从微软的残差�
 训练时增加验证集loss。
 
 
-引用：
+### 引用：
 >Keras文档  https://keras.io/   
 
 >Google最新开源Inception-ResNet-v2，借助残差网络进一步提升图像分类水准 
