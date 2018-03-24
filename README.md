@@ -1,4 +1,3 @@
-# NewDeeptesla
 # I.问题的定义
 ## 项目概述
 计算机视觉是机器到人类世界的一个接口，它让机器会“看”，甚至“认知”。其中无人驾驶技术正渐渐改变人们的出行方式。在汽车问世不久之后，发明家们就开始研究自动驾驶汽车了。
@@ -30,12 +29,12 @@ ts_micro | frame | wheel
 1464650070352580.00 |	2|	-1
 
 视频50秒到2分10秒不等，大部分为高速公路路况，光线好，视线清晰。少部分桥梁，高架下，等光线较暗等路况。
-![image](https://note.youdao.com/favicon.ico)
+![例子](./images/aexample.png)
 
 ## 探索性可视化
 除去用作验证集的第10段视频，可用作训练集约24300帧图片，label分布的直方图如下：
 
-![image](https://note.youdao.com/favicon.ico)
+![直方图](./images/distribution.png)
 可以看到大部分数据集中在-3到3这一个区间，大角度的数据占比就很少了。
 
 24300帧数据。数据显然是不够的。需要采取变更色彩，亮度，随机阴影等方法增加训练数据。为了模型具有更好的预测转弯角度，可以适当增加转向角度绝对值大于1的图片，提高转弯数据的比重。
@@ -78,22 +77,23 @@ def generator(data_path,label_path,batch_size=64):
                 steers = []
                 yield (X,Y)
 ```
-![image](https://note.youdao.com/favicon.ico)
+![生成器的图例](./images/someexample.png)
 使用keras迁移学习，利用imagenet数据集训练好的Top前5的模型，提取图片的特征，再开放一定的层数可用作训练，加强本项目应用场景的适用度。
 
 ## 基准模型
 本次将采用NVIDIA end-to-end Model 作为基准模型。
 网络的第一层执行图像标准化，接着卷积层提取特征，最后是全连接层用提取的特征进行训练并最终输出转向角度。模型的结构如下图：
 
-![image](https://note.youdao.com/favicon.ico)
+![nvidia模型](./images/nvidiamodel.png)
 
 很不幸这个模型的表现并不好，本来使用没有数据增强的数据集 Loss还能在第一个Epoch降到20以下。但只能拟合这小部分的数据泛化能力必然不够，随后使用编好的生成器训练Loss就一直没有得到优化。
-
+![基础模型loss](./images/basemodel_loss.png)
 
 # III. 方法
 ## 数据预处理
 先将分散的数据集压缩到140*140的长宽，并打包成1个npy对象，方便以后调用。
 生成器中将每张图变化一次颜色，转向角度绝对值大于1的图片，增加反转图与随机阴影图。
+
 基准训练前做归一化处理。使用Keras预训练模型时，InceptionResNetV2自带预处理查源码，一样是使用x/127-1做归一化。
 
 ## 执行过程
@@ -111,8 +111,7 @@ generator从单纯的取固定数量的图片改为有条件的输出。加深�
 # IV. 结果
 ## 模型的评价与验证
 在要求loss在1以下的标准下，收敛速度，训练时间基本与预期相符，训练途中大约在epoch7次的时候，改过数据增强部分的参数，比如由降低色彩时乘的系数，阴影的深度，只有不到0.2loss的浮动。
-![image](https://note.youdao.com/favicon.ico)
-图 3 优化模型loss
+![优化模型loss](./images/modelloss.png)
 
 Inception-ResNet-v2是早期Inception V3模型变化而来，从微软的残差网络（ResNet）论文中得到了一些灵感。残差连接（Residual connections ）允许模型中存在shortcuts，可以让研究学者成功地训练更深的神经网络（能够获得更好的表现），这样也能明显地简化Inception块。下方图表所示，Inception-ResNet-v2架构的精确度比之前的最优模型更高，图表中所示为基于单个图像的ILSVRC 2012图像分类标准得出的排行第一与排行第五的有效精确度。此外，该新模型仅仅要求两倍于Inception v3的容量与计算能力。![image](https://note.youdao.com/favicon.ico)
 此次Inception-ResNet-v2的表现不负所望，loss非常有效的在递减。
